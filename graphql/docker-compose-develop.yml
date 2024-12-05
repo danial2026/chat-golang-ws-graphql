@@ -1,0 +1,15 @@
+version: "3"
+services:
+  dev-gqlchat-golang:
+    build:
+      context: .
+      dockerfile: DockerfileDev
+    restart: always
+    container_name: "dev_gql_chat_golang"
+    ports:
+      - "24001:4000"
+
+networks:
+  default:
+    external:
+      name: gol_golang_network

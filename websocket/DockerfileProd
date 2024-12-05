@@ -1,0 +1,9 @@
+FROM alpine
+# TODO : not working in IRAN
+# RUN apk add --no-cache tzdata
+RUN mkdir /app
+WORKDIR /app
+COPY ./main /app/
+COPY ./.env-prod /app/.env
+RUN chmod +x /app/main
+CMD ["/app/main", "WSPORT=8066"]

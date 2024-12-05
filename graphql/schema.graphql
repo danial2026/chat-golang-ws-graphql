@@ -1,0 +1,172 @@
+type Message {
+  id: String,
+  guid: String,
+  username: String,
+  user_id: String,
+  room_id: String,
+  message_type: MessageType,
+  text_content: String,
+  link_url: String,
+  created_at: Int,
+  updated_at: Int,
+  deleted_at: Int,
+  deleted_for: String,
+  is_owner: Boolean,
+}
+
+enum MessageType {
+  text,
+  link,
+  location,
+  image,
+  voice,
+  video,
+  pdf,
+  call,
+  video_call,
+  voice_call,
+  others,
+}
+
+type Room {
+  id: String
+  title: String
+  image: String
+  biography: String
+  creator: String
+  creator_id: String
+  room_type: RoomType
+  is_reported: Boolean
+  is_active: Boolean
+  created_at: Int
+  updated_at: Int
+  deleted_at: Int
+  deleted_for: String
+  is_member: Boolean
+  is_admin: Boolean
+}
+
+type RoomSummery {
+  id: String!
+  room_type: RoomType!
+  title: String!
+  image: String
+}
+
+enum RoomType {
+  MUTUAL
+  GROUP
+  CHANNEL
+}
+
+type RoomMembership {
+  id: String
+  room_id: String
+  join_by: String
+  username: String
+  user_id: String
+  is_admin: Boolean
+  mute_until: Int
+  join_at: Int
+  leave_at: Int
+}
+
+type UserBlock {
+  id: String
+  blocker_user: String
+  blocked_user: String
+  description: String
+  created_at: Int
+}
+
+type Error {
+  message: String,
+  code: Int,
+}
+
+type RoomSummeryResponse {
+  data: [RoomSummery]
+  error: Error
+}
+
+type RoomResponse {
+  data: Room
+  error: Error
+}
+
+type RoomMembershipResponse {
+  data: [RoomMembership]
+  error: Error
+}
+
+type MessagesResponse {
+    data: [Message]
+    error: Error
+}
+
+input UserInput {
+  id: String!
+  username: String!
+}
+
+input createRoomInput {
+  title: String,
+  room_type: RoomType!,
+  users: [UserInput],
+  biography: String,
+}
+
+input addRoomMembersInput {
+  room_id: String!,
+  users: [UserInput]!,
+}
+
+input removeRoomMemberInput {
+  room_id: String!,
+  user: UserInput!,
+}
+
+input joinRoomInput {
+  room_id: String!,
+}
+
+input leaveRoomInput {
+  room_id: String!,
+}
+
+# Pagination
+input Pagination {
+  page: Int!
+  limit: Int!
+}
+
+type Mutation {
+  # create room:
+  createRoom(input: createRoomInput): RoomResponse
+
+  # add room members:
+  addRoomMembers(input: addRoomMembersInput): RoomMembershipResponse
+
+  # remove user from room:
+  removeRoomMember(input: removeRoomMemberInput): RoomMembershipResponse
+
+  # join room:
+  joinRoom(input: joinRoomInput): RoomMembershipResponse
+
+  # leave room:
+  leaveRoom(input: leaveRoomInput): RoomMembershipResponse
+}
+
+type Query {
+  # get rooms
+  getRooms(pagination: Pagination, room_type: RoomType): RoomSummeryResponse
+  
+  # get room by id
+  getRoom(id: String!): RoomResponse
+
+  # get room members with pagination
+  getRoomMembers(room_id: String!, pagination: Pagination): RoomMembershipResponse
+
+  # get room messages with pagination
+  getMessages(room_id: String!, last_id: String, pagination: Pagination): MessagesResponse
+}

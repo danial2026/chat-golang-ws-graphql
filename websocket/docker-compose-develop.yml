@@ -1,0 +1,15 @@
+version: "3"
+services:
+  dev-wschat-golang:
+    build:
+      context: .
+      dockerfile: DockerfileDev
+    restart: always
+    container_name: "dev_ws_chat_golang"
+    ports:
+      - "28065:8066"
+
+networks:
+  default:
+    external:
+      name: gol_golang_network

@@ -1,0 +1,32 @@
+version: '3'
+services:
+  cache-redis-develop:
+    image: redis:6.2-alpine
+    container_name: chat_redis_dev
+    ports:
+      - '16379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    volumes: 
+      - cache:/data
+
+  postgres-service-develop:
+    image: postgres:latest
+    container_name: chat_postgres_dev
+    ports:
+      - 15432:5432/tcp
+    environment:
+      POSTGRES_DB: Dev_Messages
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: knUur35tDgBHGwZ9
+    volumes:
+      - ./var/lib/postgres:/var/lib/postgres
+      - ./dbscripts/postgres:/docker-entrypoint-initdb.d
+
+volumes:
+  cache:
+    driver: local
+
+networks:
+  default:
+    external:
+      name: gol_golang_network

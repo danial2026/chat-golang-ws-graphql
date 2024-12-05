@@ -1,0 +1,15 @@
+version: "3"
+services:
+  prod-gqlchat-golang:
+    build:
+      context: .
+      dockerfile: DockerfileProd
+    restart: always
+    container_name: "prod_gql_chat_golang"
+    ports:
+      - "4001:4000"
+
+networks:
+  default:
+    external:
+      name: gol_golang_network

@@ -1,0 +1,15 @@
+version: "3"
+services:
+  prod-wschat-golang:
+    build:
+      context: .
+      dockerfile: DockerfileProd
+    restart: always
+    container_name: "prod_ws_chat_golang"
+    ports:
+      - "8065:8066"
+
+networks:
+  default:
+    external:
+      name: gol_golang_network
