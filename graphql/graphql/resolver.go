@@ -728,6 +728,8 @@ func stringToRoomType(tp string) *graphqlmodel.RoomType {
 		return &graphqlmodel.AllRoomType[1]
 	case graphqlmodel.RoomTypeChannel.String():
 		return &graphqlmodel.AllRoomType[2]
+	case graphqlmodel.RoomTypeSupport.String():
+		return &graphqlmodel.AllRoomType[3]
 	default:
 		return &graphqlmodel.AllRoomType[0]
 	}
@@ -737,6 +739,7 @@ func membershipToRoom(ctx context.Context, res graphqlresources.Resources, roomM
 
 	rooms := []*graphqlmodel.RoomSummery{}
 
+	hasSupport := false
 	for i := 0; i < len(roomMemberships); i++ {
 		newRoomModel := models.RoomModel{
 			Id: roomMemberships[i].RoomId,
@@ -746,13 +749,43 @@ func membershipToRoom(ctx context.Context, res graphqlresources.Resources, roomM
 			log.Println("err in MembershipToRoom error is: ", err.Error())
 			return nil, err
 		}
+		roomType := graphqlmodel.RoomType(newRoomModel.Type)
+		if roomType == graphqlmodel.RoomTypeSupport {
+			hasSupport = true
+		}
+
 		newRoom := graphqlmodel.RoomSummery{
 			ID:       newRoomModel.Id,
 			Title:    graphqlmodel.GenerateRoomTitle(ctx, res, newRoomModel),
-			RoomType: graphqlmodel.RoomType(newRoomModel.Type),
+			RoomType: roomType,
 		}
 		rooms = append(rooms, &newRoom)
 	}
 
-	return rooms, nil
+	sortedRooms := []*graphqlmodel.RoomSummery{}
+	if hasSupport {
+		for i := 0; i < len(rooms); i++ {
+			if rooms[i].RoomType != graphqlmodel.RoomTypeSupport {
+				sortedRooms = append(sortedRooms, rooms[i])
+			}
+		}
+	} else {
+		newRoom, createErr := graphqlmodel.CreateSupportRoom(ctx, res, res.User.Username, res.User.UserId)
+		if createErr == nil {
+			newRoomSummery := graphqlmodel.RoomSummery{
+				ID:       newRoom.Id,
+				Title:    graphqlmodel.GenerateRoomTitle(ctx, res, newRoom),
+				RoomType: graphqlmodel.RoomType(newRoom.Type),
+			}
+
+			sortedRooms = append(sortedRooms, &newRoomSummery)
+		}
+
+		for i := 0; i < len(rooms); i++ {
+			sortedRooms = append(sortedRooms, rooms[i])
+		}
+
+	}
+
+	return sortedRooms, nil
 }

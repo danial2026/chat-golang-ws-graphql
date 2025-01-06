@@ -200,17 +200,19 @@ const (
 	RoomTypeMutual  RoomType = "MUTUAL"
 	RoomTypeGroup   RoomType = "GROUP"
 	RoomTypeChannel RoomType = "CHANNEL"
+	RoomTypeSupport RoomType = "SUPPORT"
 )
 
 var AllRoomType = []RoomType{
 	RoomTypeMutual,
 	RoomTypeGroup,
 	RoomTypeChannel,
+	RoomTypeSupport,
 }
 
 func (e RoomType) IsValid() bool {
 	switch e {
-	case RoomTypeMutual, RoomTypeGroup, RoomTypeChannel:
+	case RoomTypeMutual, RoomTypeGroup, RoomTypeChannel, RoomTypeSupport:
 		return true
 	}
 	return false

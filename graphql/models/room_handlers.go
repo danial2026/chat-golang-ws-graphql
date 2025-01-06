@@ -106,6 +106,79 @@ func CreateMutualRoom(ctx context.Context, res resources.Resources, RequestedUse
 	return newRoom, nil
 }
 
+
+func CreateSupportRoom(ctx context.Context, res resources.Resources, RequestedUser, RequestedUserId string) (models.RoomModel, error) {
+	supportUserTitle := "Support"
+	supportUserId := "support"
+		
+
+	room := models.RoomModel{
+		Title: RequestedUser + ", " + supportUserTitle,
+		Type:  models.RoomMutualType,
+		Id:    RequestedUserId + "-" + supportUserId,
+	}
+
+	newRoom, roomErr := room.Create(ctx, res.ROOMSDB, res.Timeout)
+	if roomErr != nil {
+		log.Println("err in CreateSupportRoom/room.ToNewItem: " + roomErr.Error())
+		return room, roomErr
+	}
+
+	memberOne := models.RoomMembershipModel{
+		RoomId:   newRoom.Id,
+		JoinBy:   RequestedUser,
+		JoinById: RequestedUserId,
+		Username: RequestedUser,
+		UserId:   RequestedUserId,
+		IsAdmin:  false,
+	}
+	memberTwo := models.RoomMembershipModel{
+		RoomId:   newRoom.Id,
+		JoinBy:   RequestedUser,
+		JoinById: RequestedUserId,
+		Username: supportUserTitle,
+		UserId:   supportUserId,
+		IsAdmin:  false,
+	}
+
+	memberOneModel, memberOneErr := memberOne.ToNewStruct()
+	if memberOneErr != nil {
+		log.Println("err in CreateSupportRoom/memberOne.ToNewItem: " + memberOneErr.Error())
+		return room, memberOneErr
+	}
+	memberTwoModel, memberTwoErr := memberTwo.ToNewStruct()
+	if memberTwoErr != nil {
+		log.Println("err in CreateSupportRoom/memberTwo.ToNewItem: " + memberTwoErr.Error())
+		return room, memberTwoErr
+	}
+
+	isRoomMembershipExist, existErr := IsRoomMember(ctx, res, memberOneModel.Username, memberOneModel.UserId, newRoom.Id)
+	if existErr != nil {
+		log.Println("CreateSupportRoom/isRoomMembershipExist error is: ", existErr.Error())
+		return room, existErr
+	}
+	if !isRoomMembershipExist {
+		_, creationErr := memberOneModel.Create(ctx, res.ROOMSDB, res.Timeout)
+		if creationErr != nil {
+			return newRoom, errors.New("Err in CreateSupportRoom/CreateMembership 1: " + creationErr.Error())
+		}
+	}
+
+	isRoomMembershipExist, existErr = IsRoomMember(ctx, res, memberTwoModel.Username, memberTwoModel.UserId, newRoom.Id)
+	if existErr != nil {
+		log.Println("CreateSupportRoom/isRoomMembershipExist error is: ", existErr.Error())
+		return room, existErr
+	}
+	if !isRoomMembershipExist {
+		_, creationErr := memberTwoModel.Create(ctx, res.ROOMSDB, res.Timeout)
+		if creationErr != nil {
+			return newRoom, errors.New("Err in CreateSupportRoom/CreateMembership 2: " + creationErr.Error())
+		}
+	}
+
+	return newRoom, nil
+}
+
 // 1. create the room
 // 2. loop thro the list of users and create a membership for them
 func CreateGroupRoom(ctx context.Context, res resources.Resources, RequestedUser, RequestedUserId, roomTitle string, TargetUsers []*UserInput) (models.RoomModel, error) {
